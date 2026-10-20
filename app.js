@@ -13,7 +13,7 @@ async function start() {
   app.use(session(sessionOptions));
   app.use((req, res, next) => { res.locals.user = null; res.locals.path = req.path; next(); });
   app.use(require('./routes/authRoutes')); app.use(require('./routes/indexRoutes')); app.use(require('./routes/documentRoutes')); app.use(require('./routes/calendarRoutes'));
-  app.use((err, req, res, next) => { console.error(err); if (req.path.startsWith('/api/') || req.path.includes('/document/')) return res.status(500).json({ error: 'Something went wrong. Please try again.' }); res.status(500).render('error', { title: 'Something went wrong', message: 'We could not complete that request.' }); });
+  app.use((err, req, res, next) => { const status = Number.isInteger(err.status) ? err.status : 500; console.error(`Request failed ${req.method} ${req.path} (HTTP ${status}) at ${err.stage || 'application'}: ${err.message}`); if (req.path.startsWith('/api/') || req.path.includes('/document/')) return res.status(status).json({ error: err.status ? err.message : 'Something went wrong. Please try again.' }); res.status(status).render('error', { title: 'Something went wrong', message: err.status ? err.message : 'We could not complete that request.' }); });
   app.listen(port, () => console.log(`StudyBuddy running at http://localhost:${port}`));
 }
 
