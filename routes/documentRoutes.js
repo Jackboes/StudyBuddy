@@ -7,13 +7,24 @@ const demoVivaQuestions = require('../data/viva-dbms-normalization.json');
 const pdfParse = require('pdf-parse');
 const Document = require('../models/Document'); const Quiz = require('../models/Quiz'); const Flashcard = require('../models/Flashcard');
 const { requireAuth } = require('../middleware/auth'); const { generateReliable } = require('../services/ai');
-const upload = multer({ dest: path.join(__dirname, '../uploads'), limits: { fileSize: 15 * 1024 * 1024 }, fileFilter: (_, file, cb) => cb(null, file.mimetype === 'application/pdf') });
+const upload = multer({ dest: path.join(__dirname, '../uploads'), limits: { fileSize: 15 * 1024 * 1024 } });
 const router = express.Router(); router.use(requireAuth);
 function hashText(text) { return crypto.createHash('sha256').update(String(text || ''), 'utf8').digest('hex'); }
+function removeUploadedFile(file) { if (file?.path) try { fs.unlinkSync(file.path); } catch {} }
+function uploadPdf(req, res, next) {
+  upload.single('pdf')(req, res, err => {
+    if (!err) return next();
+    removeUploadedFile(req.file);
+    const uploadError = new Error(err.code === 'LIMIT_FILE_SIZE' ? 'PDF files must be 15 MB or smaller.' : 'The PDF upload could not be completed. Please try again.');
+    uploadError.status = err.code === 'LIMIT_FILE_SIZE' ? 413 : 400;
+    uploadError.stage = 'upload';
+    next(uploadError);
+  });
+}
 function validVivaQuestions(value) { return Array.isArray(value) && value.length > 0 && value.every(item => item && typeof item.question === 'string' && item.question.trim() && typeof item.answer === 'string' && item.answer.trim() && Array.isArray(item.followUpQuestions)); }
 function isDemoNormalizationDocument(doc) { const identity = `${doc.title || ''} ${doc.fileName || ''}`.toLowerCase(); return identity.includes('dbms') && identity.includes('normaliz'); }
 function vivaFallbackFor(doc) { return isDemoNormalizationDocument(doc) ? demoVivaQuestions : null; }
-router.post('/upload', upload.single('pdf'), async (req, res, next) => { try { if (!req.file) return res.status(400).send('Please upload a PDF file.'); const buffer = fs.readFileSync(req.file.path); const parsed = await pdfParse(buffer); const extractedText = String(parsed.text || '').replace(/\u0000/g, '').trim(); if (extractedText.length < 80) { fs.unlinkSync(req.file.path); return res.status(422).send('This PDF has insufficient extractable text. Please upload a text-based PDF.'); } const doc = await Document.create({ userId: req.session.userId, title: req.body.title || req.file.originalname.replace(/\.pdf$/i, ''), fileName: req.file.originalname, extractedText, contentHash: hashText(extractedText) }); fs.unlinkSync(req.file.path); res.redirect(`/document/${doc._id}`); } catch (e) { if (req.file) try { fs.unlinkSync(req.file.path); } catch {} e.pdfCause = e.message; e.status = e.status || 422; e.stage = e.stage || 'pdf:extract'; e.message = 'Could not read this PDF. Please upload a valid text-based PDF.'; next(e); } });
+router.post('/upload', uploadPdf, async (req, res, next) => { try { if (!req.file) return res.status(400).send('Please upload a PDF file.'); const buffer = fs.readFileSync(req.file.path); if (buffer.length < 5 || buffer.subarray(0, 5).toString('ascii') !== '%PDF-') { removeUploadedFile(req.file); return res.status(415).send('Please upload a valid PDF file.'); } const parsed = await pdfParse(buffer); const extractedText = String(parsed.text || '').replace(/\u0000/g, '').trim(); if (extractedText.length < 80) { removeUploadedFile(req.file); return res.status(422).send('This PDF has insufficient extractable text. Please upload a text-based PDF.'); } const doc = await Document.create({ userId: req.session.userId, title: req.body.title || req.file.originalname.replace(/\.pdf$/i, ''), fileName: req.file.originalname, extractedText, contentHash: hashText(extractedText) }); removeUploadedFile(req.file); res.redirect(`/document/${doc._id}`); } catch (e) { removeUploadedFile(req.file); e.pdfCause = e.message; e.status = e.status || 422; e.stage = e.stage || 'pdf:extract'; e.message = 'Could not read this PDF. Please upload a valid, readable PDF file.'; next(e); } });
 function requireDocumentText(doc, res) { if (!String(doc.extractedText || '').trim()) { res.status(422).json({ error: 'This PDF has no extractable text. Please upload a text-based PDF.' }); return false; } return true; }
 function isPlaceholderSummary(summary) { return typeof summary === 'string' && summary.startsWith('Your notes are ready to review.'); }
 function isPlaceholderQuiz(quiz) { return !quiz || !Array.isArray(quiz.questions) || quiz.questions.length < 1 || quiz.questions.some(question => typeof question.questionText !== 'string' || question.questionText.startsWith('Review question ')); }
