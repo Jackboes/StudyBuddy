@@ -1,10 +1,10 @@
-# 📚 StudyBuddy
+# StudyBuddy
 
 StudyBuddy is a web-based study platform that helps students turn their study material into useful revision resources. Instead of manually preparing notes, flashcards, and questions from a PDF, students can upload their material and use AI-powered features to make revision easier.
 
 The project uses Google's Gemini API for AI-generated study content and MongoDB to store application data.
 
-## ✨ Features
+##  Features
 
 - 📄 **PDF Upload:** Upload study material in PDF format and extract its text for further processing.
 - 📝 **Smart Notes:** Generate concise study notes from uploaded material.
@@ -14,7 +14,7 @@ The project uses Google's Gemini API for AI-generated study content and MongoDB 
 - 🔐 **User Accounts:** Register, log in, and access your study resources through your account.
 - 📊 **Dashboard:** Access the application's study features from a central dashboard.
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 **Frontend**
 - HTML
@@ -36,7 +36,7 @@ The project uses Google's Gemini API for AI-generated study content and MongoDB 
 **Deployment**
 - Render
 
-## ⚙️ How It Works
+## How It Works
 
 1. Create an account or log in to StudyBuddy.
 2. Upload a PDF containing your study material.
@@ -45,7 +45,7 @@ The project uses Google's Gemini API for AI-generated study content and MongoDB 
 5. The application uses the Gemini API to generate study content from the extracted material.
 6. Access your study resources through the application.
 
-📌 **Note:** Extracted document text is stored in MongoDB for application use. Temporary uploaded PDF files are removed after processing; the original PDFs are not retained as permanent uploads.
+ **Note:** Extracted document text is stored in MongoDB for application use. Temporary uploaded PDF files are removed after processing; the original PDFs are not retained as permanent uploads.
 
 ## 🚀 Getting Started
 
