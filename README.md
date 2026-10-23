@@ -6,15 +6,15 @@ The project uses Google's Gemini API for AI-generated study content and MongoDB 
 
 ##  Features
 
-- 📄 **PDF Upload:** Upload study material in PDF format and extract its text for further processing.
-- 📝 **Smart Notes:** Generate concise study notes from uploaded material.
-- 🃏 **AI-Generated Flashcards:** Create flashcards from study material for quick revision.
-- 🧠 **Quiz Generation:** Generate quizzes based on uploaded content to test understanding.
-- 🎤 **Viva Questions:** Generate questions to help students prepare for oral examinations.
-- 🔐 **User Accounts:** Register, log in, and access your study resources through your account.
-- 📊 **Dashboard:** Access the application's study features from a central dashboard.
+-  **PDF Upload:** Upload study material in PDF format and extract its text for further processing.
+-  **Smart Notes:** Generate concise study notes from uploaded material.
+-  **AI-Generated Flashcards:** Create flashcards from study material for quick revision.
+-  **Quiz Generation:** Generate quizzes based on uploaded content to test understanding.
+-  **Viva Questions:** Generate questions to help students prepare for oral examinations.
+-  **User Accounts:** Register, log in, and access your study resources through your account.
+-  **Dashboard:** Access the application's study features from a central dashboard.
 
-## Tech Stack
+## Tech Stack as follows:
 
 **Frontend**
 - HTML
